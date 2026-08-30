@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Личный дневник тренировок" />
+    <title>Дневник тренировок</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script src="./config.js"></script>
+    <script type="module" src="./js/app.js"></script>
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">GYM LOG</p>
+        <h1>Дневник тренировок</h1>
+      </div>
+      <button id="sign-out-button" class="secondary hidden" type="button">Выйти</button>
+    </header>
+
+    <main>
+      <section id="setup-screen" class="panel hidden" aria-labelledby="setup-title">
+        <h2 id="setup-title">Нужно подключить Supabase</h2>
+        <p>Укажите <code>SUPABASE_URL</code> и <code>SUPABASE_ANON_KEY</code> в файле <code>config.js</code>.</p>
+      </section>
+
+      <section id="auth-screen" class="panel auth-panel hidden" aria-labelledby="auth-title">
+        <h2 id="auth-title">Вход</h2>
+        <p>Получите одноразовую ссылку на email. Пароль не требуется.</p>
+        <form id="auth-form">
+          <label>
+            Email
+            <input id="email" name="email" type="email" autocomplete="email" required />
+          </label>
+          <button type="submit">Отправить ссылку</button>
+        </form>
+        <p id="auth-message" class="message" role="status"></p>
+      </section>
+
+      <div id="app-screen" class="hidden">
+        <section class="stats-grid" aria-label="Сводка">
+          <article class="stat"><span>Тренировок</span><strong id="stat-workouts">0</strong></article>
+          <article class="stat"><span>Рабочих подходов</span><strong id="stat-sets">0</strong></article>
+          <article class="stat"><span>Общий объём</span><strong id="stat-volume">0 кг</strong></article>
+          <article class="stat"><span>Лучший расчётный 1ПМ</span><strong id="stat-e1rm">0 кг</strong></article>
+        </section>
+
+        <section class="panel" aria-labelledby="editor-title">
+          <div class="section-heading">
+            <h2 id="editor-title">Новая тренировка</h2>
+            <button id="cancel-edit-button" class="secondary hidden" type="button">Отменить редактирование</button>
+          </div>
+          <form id="workout-form">
+            <div class="form-grid">
+              <label>
+                Дата и время
+                <input id="performed-at" name="performedAt" type="datetime-local" required />
+              </label>
+              <label>
+                Заметка
+                <input id="workout-notes" name="notes" maxlength="500" placeholder="Необязательно" />
+              </label>
+            </div>
+
+            <div class="section-heading compact">
+              <h3>Подходы</h3>
+              <div class="button-row">
+                <button id="add-exercise-button" class="secondary" type="button">Новое упражнение</button>
+                <button id="add-set-button" class="secondary" type="button">Добавить подход</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr><th>Упражнение</th><th>Вес, кг</th><th>Повторы</th><th>RPE</th><th>Разминка</th><th></th></tr>
+                </thead>
+                <tbody id="set-rows"></tbody>
+              </table>
+            </div>
+            <button id="save-workout-button" type="submit">Сохранить тренировку</button>
+            <p id="workout-message" class="message" role="status"></p>
+          </form>
+        </section>
+
+        <section class="chart-grid" aria-label="Графики прогресса">
+          <article class="panel chart-panel"><h2>Объём по тренировкам</h2><canvas id="volume-chart"></canvas></article>
+          <article class="panel chart-panel"><h2>Расчётный 1ПМ</h2><canvas id="e1rm-chart"></canvas></article>
+        </section>
+
+        <section class="panel" aria-labelledby="history-title">
+          <div class="section-heading">
+            <h2 id="history-title">История</h2>
+            <button id="refresh-button" class="secondary" type="button">Обновить</button>
+          </div>
+          <div id="history" class="history"></div>
+        </section>
+      </div>
+    </main>
+
+    <dialog id="exercise-dialog">
+      <form id="exercise-form" method="dialog">
+        <h2>Новое упражнение</h2>
+        <label>
+          Название
+          <input id="exercise-name" name="name" maxlength="120" required />
+        </label>
+        <label>
+          Группа мышц
+          <input id="muscle-group" name="muscleGroup" maxlength="80" placeholder="Необязательно" />
+        </label>
+        <div class="button-row">
+          <button value="cancel" class="secondary">Отмена</button>
+          <button id="save-exercise-button" value="default">Сохранить</button>
+        </div>
+        <p id="exercise-message" class="message" role="status"></p>
+      </form>
+    </dialog>
+
+    <template id="set-row-template">
+      <tr>
+        <td><select class="set-exercise" required></select></td>
+        <td><input class="set-weight" type="number" min="0" max="2000" step="0.25" required /></td>
+        <td><input class="set-reps" type="number" min="1" max="1000" step="1" required /></td>
+        <td><input class="set-rpe" type="number" min="1" max="10" step="0.5" /></td>
+        <td class="checkbox-cell"><input class="set-warmup" type="checkbox" aria-label="Разминочный подход" /></td>
+        <td><button class="danger remove-set" type="button" aria-label="Удалить подход">×</button></td>
+      </tr>
+    </template>
+  </body>
+</html>

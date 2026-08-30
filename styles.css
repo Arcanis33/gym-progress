@@ -1,0 +1,76 @@
+:root {
+  color-scheme: light;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #18201b;
+  background: #f4f6f4;
+  font-synthesis: none;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+
+.app-header, main { width: min(1180px, calc(100% - 32px)); margin-inline: auto; }
+.app-header { display: flex; align-items: center; justify-content: space-between; padding: 32px 0 20px; }
+h1, h2, h3, p { margin-top: 0; }
+h1 { margin-bottom: 0; font-size: clamp(1.6rem, 4vw, 2.4rem); }
+h2 { font-size: 1.15rem; }
+.eyebrow { margin-bottom: 4px; color: #4f6d5b; font-size: .75rem; font-weight: 800; letter-spacing: .16em; }
+
+main { padding-bottom: 64px; }
+.panel, .stat { background: #fff; border: 1px solid #dce4de; border-radius: 12px; box-shadow: 0 4px 20px rgb(34 60 43 / 5%); }
+.panel { padding: 22px; margin-bottom: 18px; }
+.auth-panel { max-width: 520px; margin-inline: auto; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+.stat { padding: 18px; }
+.stat span { display: block; color: #667269; font-size: .85rem; margin-bottom: 8px; }
+.stat strong { font-size: 1.4rem; }
+
+label { display: grid; gap: 7px; color: #4d5851; font-size: .85rem; font-weight: 650; }
+input, select { width: 100%; min-height: 42px; border: 1px solid #cbd5ce; border-radius: 8px; background: #fff; color: inherit; padding: 8px 10px; }
+input:focus, select:focus { outline: 3px solid rgb(52 122 76 / 14%); border-color: #347a4c; }
+button { min-height: 40px; border: 1px solid #28663f; border-radius: 8px; padding: 8px 14px; background: #28663f; color: #fff; font-weight: 700; }
+button:hover { filter: brightness(.95); }
+button:disabled { cursor: wait; opacity: .6; }
+button.secondary { background: #fff; color: #28663f; }
+button.danger { border-color: #b33838; background: transparent; color: #b33838; min-width: 36px; padding: 4px 8px; }
+
+.form-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 14px; margin-bottom: 20px; }
+.section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.section-heading.compact { margin-top: 8px; }
+.section-heading h2, .section-heading h3 { margin-bottom: 0; }
+.button-row { display: flex; gap: 8px; justify-content: flex-end; }
+.table-wrap { overflow-x: auto; margin: 12px 0 18px; }
+table { width: 100%; border-collapse: collapse; min-width: 720px; }
+th, td { padding: 8px; border-bottom: 1px solid #e7ece8; text-align: left; }
+th { color: #69746c; font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; }
+.checkbox-cell { text-align: center; }
+.checkbox-cell input { width: 20px; min-height: 20px; }
+
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.chart-panel { min-height: 340px; }
+.chart-panel canvas { max-height: 260px; }
+.history { display: grid; gap: 12px; }
+.workout-card { border: 1px solid #e1e7e2; border-radius: 10px; padding: 16px; }
+.workout-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.workout-card h3 { margin-bottom: 4px; }
+.workout-card p { color: #657068; margin-bottom: 10px; }
+.workout-card ul { margin: 0; padding-left: 20px; }
+.workout-actions { display: flex; gap: 8px; }
+.empty { color: #6d766f; text-align: center; padding: 28px 0; }
+.message { min-height: 1.3em; margin: 10px 0 0; color: #27653e; }
+.message.error { color: #a12c2c; }
+.hidden { display: none !important; }
+code { background: #edf1ee; border-radius: 4px; padding: 2px 5px; }
+dialog { width: min(480px, calc(100% - 32px)); border: 0; border-radius: 12px; padding: 24px; box-shadow: 0 20px 80px rgb(0 0 0 / 20%); }
+dialog::backdrop { background: rgb(18 26 21 / 45%); }
+dialog form { display: grid; gap: 16px; }
+
+@media (max-width: 760px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .chart-grid, .form-grid { grid-template-columns: 1fr; }
+  .section-heading { align-items: flex-start; flex-direction: column; }
+  .button-row { flex-wrap: wrap; justify-content: flex-start; }
+  .workout-card-header { flex-direction: column; }
+}
