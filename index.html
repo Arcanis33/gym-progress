@@ -26,7 +26,7 @@
     <header class="topbar"><div class="brand"><span>Спокойная аналитика</span><small>дневник прогресса</small></div><div id="athlete-switcher" class="segmented"></div><div class="top-actions"><span class="today"><span class="material-symbols-rounded">calendar_today</span><span id="today-label"></span></span><button id="sign-out-button" class="icon-button" type="button" aria-label="Выйти"><span class="material-symbols-rounded">logout</span></button></div></header>
     <main class="main-grid">
       <section class="results-pane">
-        <div class="toolbar"><label class="select-wrap"><span class="material-symbols-rounded">filter_list</span><select id="group-filter"><option value="all">Все группы</option></select></label><label class="search-wrap"><span class="material-symbols-rounded">search</span><input id="exercise-search" type="search" placeholder="Найти упражнение"></label><button id="open-recorder" class="record-button" type="button"><span class="material-symbols-rounded">add_circle</span>Режим записи</button></div>
+        <div class="toolbar"><label class="select-wrap"><span class="material-symbols-rounded">filter_list</span><select id="group-filter"><option value="all">Все группы</option></select></label><label class="search-wrap"><span class="material-symbols-rounded">search</span><input id="exercise-search" type="search" placeholder="Найти упражнение"></label><button id="open-exercise-dialog" class="add-exercise-button" type="button"><span class="material-symbols-rounded">playlist_add</span><span>Новое упражнение</span></button><button id="open-recorder" class="record-button" type="button"><span class="material-symbols-rounded">add_circle</span>Режим записи</button></div>
         <div class="table-head"><span>Упражнение</span><span>Последний результат</span><span>Дата</span><span>Следующая цель</span><span>Изменение</span></div>
         <div id="results-list" class="results-list" aria-live="polite"></div>
       </section>
@@ -41,5 +41,14 @@
     <section id="record-step-exercise" class="record-step hidden"><button id="back-to-day" class="text-button" type="button"><span class="material-symbols-rounded">arrow_back</span>Сменить день</button><p class="step-hint">Нажмите на выполненное упражнение</p><div id="record-exercises" class="exercise-choice"></div></section>
     <section id="record-step-values" class="record-step hidden"><button id="back-to-exercises" class="text-button" type="button"><span class="material-symbols-rounded">arrow_back</span>К упражнениям</button><div id="record-selected" class="record-selected"></div><form id="record-form"><fieldset><legend>Кто выполнял?</legend><div id="record-athletes" class="segmented wide"></div></fieldset><div class="number-grid"><label><span id="weight-label">Вес, кг</span><div class="stepper"><button data-step="weight" data-delta="-1" type="button">−</button><input id="record-weight" type="number" min="-200" max="2000" step="1" inputmode="decimal" required><button data-step="weight" data-delta="1" type="button">+</button></div></label><label><span>Повторы</span><div class="stepper"><button data-step="reps" data-delta="-1" type="button">−</button><input id="record-reps" type="number" min="1" max="1000" step="1" inputmode="numeric" required><button data-step="reps" data-delta="1" type="button">+</button></div></label></div><label>Комментарий<input id="record-comment" maxlength="500" placeholder="Необязательно"></label><button id="save-record" class="save-record" type="submit">Записать результат</button><p id="record-message" class="message" role="status"></p></form></section>
   </aside>
+  <dialog id="exercise-dialog" class="exercise-dialog">
+    <form id="exercise-form" method="dialog">
+      <div class="dialog-header"><div><p>Библиотека</p><h2>Новое упражнение</h2></div><button id="close-exercise-dialog" class="icon-button" type="button" aria-label="Закрыть"><span class="material-symbols-rounded">close</span></button></div>
+      <label>Название<input id="new-exercise-name" maxlength="120" autocomplete="off" placeholder="Например, румынская тяга" required></label>
+      <label>Группа мышц<select id="new-exercise-group" required><option value="Ноги">Ноги</option><option value="Корпус">Корпус</option><option value="Спина">Спина</option><option value="Грудь">Грудь</option><option value="Плечи">Плечи</option><option value="Трапеции">Трапеции</option></select></label>
+      <p class="dialog-hint">По группе мышц упражнение автоматически попадёт в день ног или день спины.</p>
+      <button id="save-exercise" class="save-record" type="submit">Добавить упражнение</button><p id="exercise-message" class="message" role="status"></p>
+    </form>
+  </dialog>
   <div id="toast" class="toast hidden" role="status"></div>
 </body></html>
