@@ -5,9 +5,9 @@
   <meta name="theme-color" content="#f8f6f1"><title>Дневник тренировок</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./styles.css?v=5">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-  <script src="./config.js"></script><script src="./data/seed.js"></script><script type="module" src="./js/app.js"></script>
+  <script src="./config.js"></script><script src="./data/seed.js"></script><script type="module" src="./js/app.js?v=5"></script>
 </head>
 <body>
   <section id="setup-screen" class="center-screen hidden"><div class="auth-card"><h1>Нужно подключить Supabase</h1><p>Заполните публичные настройки в <code>config.js</code>.</p></div></section>
@@ -34,7 +34,7 @@
         <div class="table-head"><span>Упражнение</span><span>Последний результат</span><span>Дата</span><span>Следующая цель</span><span>Изменение</span></div>
         <div id="results-list" class="results-list" aria-live="polite"></div>
       </section>
-      <aside id="detail-pane" class="detail-pane"><div id="detail-empty" class="empty-state"><span class="material-symbols-rounded">touch_app</span><p>Выберите упражнение, чтобы увидеть динамику</p></div><div id="detail-content" class="hidden"><div class="detail-title"><div><p id="detail-group"></p><h2 id="detail-name"></h2></div></div><dl class="detail-facts"><div><dt>Последний результат</dt><dd id="detail-result"></dd><small id="detail-date"></small></div><div><dt>Следующая цель</dt><dd id="detail-target"></dd></div></dl><div class="chart-heading"><h3>Динамика</h3><span id="chart-mode">повторы</span></div><div class="chart-wrap"><canvas id="progress-chart"></canvas></div><div id="history-list" class="mini-history"></div></div></aside>
+      <aside id="detail-pane" class="detail-pane"><button id="close-detail" class="icon-button detail-close" type="button" aria-label="Закрыть статистику"><span class="material-symbols-rounded">close</span></button><div id="detail-empty" class="empty-state"><span class="material-symbols-rounded">touch_app</span><p>Выберите упражнение, чтобы увидеть динамику</p></div><div id="detail-content" class="hidden"><div class="detail-title"><div><p id="detail-group"></p><h2 id="detail-name"></h2></div></div><dl class="detail-facts"><div><dt>Последний результат</dt><dd id="detail-result"></dd><small id="detail-date"></small></div><div><dt>Следующая цель</dt><dd id="detail-target"></dd></div><div><dt>Прогресс</dt><dd id="detail-progress"></dd><small id="detail-sessions"></small></div></dl><div class="chart-heading"><h3>Динамика</h3><span id="chart-mode">вес и повторы</span></div><div class="chart-wrap"><canvas id="progress-chart"></canvas></div><h3 class="history-heading">История результатов</h3><div id="history-list" class="mini-history"></div></div></aside>
     </main>
   </div>
 
