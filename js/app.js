@@ -1,352 +1,75 @@
-const config = window.GYM_CONFIG ?? {};
-const configured =
-  config.SUPABASE_URL &&
-  config.SUPABASE_ANON_KEY &&
-  !config.SUPABASE_URL.includes("YOUR_PROJECT") &&
-  !config.SUPABASE_ANON_KEY.includes("YOUR_SUPABASE");
-
-const elements = {
-  setup: document.querySelector("#setup-screen"),
-  auth: document.querySelector("#auth-screen"),
-  app: document.querySelector("#app-screen"),
-  authForm: document.querySelector("#auth-form"),
-  authMessage: document.querySelector("#auth-message"),
-  signOut: document.querySelector("#sign-out-button"),
-  workoutForm: document.querySelector("#workout-form"),
-  workoutMessage: document.querySelector("#workout-message"),
-  performedAt: document.querySelector("#performed-at"),
-  notes: document.querySelector("#workout-notes"),
-  setRows: document.querySelector("#set-rows"),
-  setTemplate: document.querySelector("#set-row-template"),
-  addSet: document.querySelector("#add-set-button"),
-  addExercise: document.querySelector("#add-exercise-button"),
-  cancelEdit: document.querySelector("#cancel-edit-button"),
-  editorTitle: document.querySelector("#editor-title"),
-  saveWorkout: document.querySelector("#save-workout-button"),
-  refresh: document.querySelector("#refresh-button"),
-  history: document.querySelector("#history"),
-  exerciseDialog: document.querySelector("#exercise-dialog"),
-  exerciseForm: document.querySelector("#exercise-form"),
-  exerciseMessage: document.querySelector("#exercise-message"),
-};
-
-const state = { exercises: [], workouts: [], editingWorkoutId: null, charts: [] };
+const cfg=window.GYM_CONFIG??{};
+const configured=cfg.SUPABASE_URL&&cfg.SUPABASE_ANON_KEY&&!cfg.SUPABASE_URL.includes("YOUR_PROJECT");
+const $=(s)=>document.querySelector(s); const $$=(s)=>[...document.querySelectorAll(s)];
+const el={setup:$("#setup-screen"),auth:$("#auth-screen"),app:$("#app-screen"),authForm:$("#auth-form"),authMessage:$("#auth-message"),athletes:$("#athlete-switcher"),group:$("#group-filter"),search:$("#exercise-search"),list:$("#results-list"),detailEmpty:$("#detail-empty"),detail:$("#detail-content"),drawer:$("#record-drawer"),backdrop:$("#drawer-backdrop"),toast:$("#toast"),recordAthletes:$("#record-athletes"),recordExercises:$("#record-exercises"),recordMessage:$("#record-message")};
+const state={athletes:[],exercises:[],sets:[],athlete:null,exerciseId:null,chart:null,recordDay:null,recordExercise:null,recordAthlete:null,seeded:false};
 let db;
+const previewMode=new URLSearchParams(location.search).has("preview")&&["localhost","127.0.0.1"].includes(location.hostname);
 
-function showOnly(name) {
-  elements.setup.classList.toggle("hidden", name !== "setup");
-  elements.auth.classList.toggle("hidden", name !== "auth");
-  elements.app.classList.toggle("hidden", name !== "app");
-  elements.signOut.classList.toggle("hidden", name !== "app");
-}
+function show(screen){el.setup.classList.toggle("hidden",screen!=="setup");el.auth.classList.toggle("hidden",screen!=="auth");el.app.classList.toggle("hidden",screen!=="app")}
+function message(node,text="",error=false){node.textContent=text;node.classList.toggle("error",error)}
+function escapeHtml(v=""){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
+function dateLabel(v,short=false){return new Intl.DateTimeFormat("ru-RU",short?{day:"2-digit",month:"short"}:{day:"2-digit",month:"short",year:"numeric"}).format(new Date(v))}
+function imageFor(exercise){return `./assets/exercises/${exercise.image_slug||"leg-curl"}.png`}
+function resultLabel(set){const value=set.assistance_kg!=null?Number(set.assistance_kg):Number(set.weight_kg);return `${String(value).replace("-","−")} × ${set.reps}`}
+function personSets(){return state.sets.filter(s=>s.athletes?.slug===state.athlete)}
+function sortedHistory(exerciseId){return personSets().filter(s=>s.exercise_id===exerciseId).sort((a,b)=>new Date(a.workouts.performed_at)-new Date(b.workouts.performed_at))}
+function latestByExercise(){const map=new Map();[...personSets()].sort((a,b)=>new Date(b.workouts.performed_at)-new Date(a.workouts.performed_at)).forEach(s=>{if(!map.has(s.exercise_id))map.set(s.exercise_id,s)});return [...map.values()]}
+function showToast(text){el.toast.textContent=text;el.toast.classList.remove("hidden");setTimeout(()=>el.toast.classList.add("hidden"),2600)}
 
-function setMessage(element, text = "", error = false) {
-  element.textContent = text;
-  element.classList.toggle("error", error);
-}
-
-function setBusy(button, busy) {
-  button.disabled = busy;
-  button.setAttribute("aria-busy", String(busy));
-}
-
-function localDateTimeValue(date = new Date()) {
-  const shifted = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
-  return shifted.toISOString().slice(0, 16);
-}
-
-function formatDate(value) {
-  return new Intl.DateTimeFormat("ru-RU", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
-
-function formatNumber(value, maximumFractionDigits = 1) {
-  return new Intl.NumberFormat("ru-RU", { maximumFractionDigits }).format(value || 0);
-}
-
-function escapeHtml(value = "") {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function exerciseOptions(selectedId = "") {
-  return state.exercises
-    .map((exercise) => `<option value="${exercise.id}" ${exercise.id === selectedId ? "selected" : ""}>${escapeHtml(exercise.name)}</option>`)
-    .join("");
-}
-
-function addSetRow(set = {}) {
-  const fragment = elements.setTemplate.content.cloneNode(true);
-  const row = fragment.querySelector("tr");
-  const exercise = row.querySelector(".set-exercise");
-  exercise.innerHTML = `<option value="">Выберите…</option>${exerciseOptions(set.exercise_id)}`;
-  row.querySelector(".set-weight").value = set.weight_kg ?? "";
-  row.querySelector(".set-reps").value = set.reps ?? "";
-  row.querySelector(".set-rpe").value = set.rpe ?? "";
-  row.querySelector(".set-warmup").checked = Boolean(set.is_warmup);
-  row.querySelector(".remove-set").addEventListener("click", () => {
-    row.remove();
-    if (!elements.setRows.children.length) addSetRow();
-  });
-  elements.setRows.append(fragment);
-}
-
-function resetEditor() {
-  state.editingWorkoutId = null;
-  elements.editorTitle.textContent = "Новая тренировка";
-  elements.saveWorkout.textContent = "Сохранить тренировку";
-  elements.cancelEdit.classList.add("hidden");
-  elements.workoutForm.reset();
-  elements.performedAt.value = localDateTimeValue();
-  elements.setRows.replaceChildren();
-  addSetRow();
-  setMessage(elements.workoutMessage);
-}
-
-function readSets() {
-  return [...elements.setRows.querySelectorAll("tr")].map((row, index) => ({
-    exercise_id: row.querySelector(".set-exercise").value,
-    set_order: index + 1,
-    weight_kg: Number(row.querySelector(".set-weight").value),
-    reps: Number(row.querySelector(".set-reps").value),
-    rpe: row.querySelector(".set-rpe").value ? Number(row.querySelector(".set-rpe").value) : null,
-    is_warmup: row.querySelector(".set-warmup").checked,
-  }));
-}
-
-async function loadData() {
-  setBusy(elements.refresh, true);
-  const [exerciseResult, workoutResult] = await Promise.all([
-    db.from("exercises").select("id,name,muscle_group").order("name"),
-    db
-      .from("workouts")
-      .select("id,performed_at,notes,workout_sets(id,exercise_id,set_order,weight_kg,reps,rpe,is_warmup,exercises(id,name))")
-      .order("performed_at", { ascending: false }),
-  ]);
-  setBusy(elements.refresh, false);
-  if (exerciseResult.error) throw exerciseResult.error;
-  if (workoutResult.error) throw workoutResult.error;
-  state.exercises = exerciseResult.data ?? [];
-  state.workouts = (workoutResult.data ?? []).map((workout) => ({
-    ...workout,
-    workout_sets: [...workout.workout_sets].sort((a, b) => a.set_order - b.set_order),
-  }));
-  render();
-}
-
-async function saveWorkout(event) {
-  event.preventDefault();
-  const sets = readSets();
-  if (!sets.length || sets.some((set) => !set.exercise_id || !set.reps || Number.isNaN(set.weight_kg))) {
-    setMessage(elements.workoutMessage, "Заполните данные каждого подхода.", true);
-    return;
+async function ensureSeed(){
+  if(state.athletes.length||!window.GYM_SEED)return;
+  const aRes=await db.from("athletes").insert(window.GYM_SEED.athletes).select("id,slug,name"); if(aRes.error)throw aRes.error;
+  const unique=new Map();window.GYM_SEED.records.forEach(r=>unique.set(r[4],{name:r[3],muscle_group:r[2],image_slug:r[4]}));
+  const eRes=await db.from("exercises").insert([...unique.values()]).select("id,name,muscle_group,image_slug");if(eRes.error)throw eRes.error;
+  const athleteIds=Object.fromEntries(aRes.data.map(a=>[a.slug,a.id]));const exerciseIds=Object.fromEntries(eRes.data.map(e=>[e.image_slug,e.id]));
+  for(const date of [...new Set(window.GYM_SEED.records.map(r=>r[0]))]){
+    const records=window.GYM_SEED.records.filter(r=>r[0]===date);const dayType=date==="2026-08-24"?"Спина":"Ноги";
+    const wRes=await db.from("workouts").insert({performed_at:`${date}T12:00:00+02:00`,day_type:dayType,notes:"Импортировано из тренировочной базы"}).select("id").single();if(wRes.error)throw wRes.error;
+    const rows=records.map((r,i)=>({workout_id:wRes.data.id,athlete_id:athleteIds[r[1]],exercise_id:exerciseIds[r[4]],set_order:i+1,weight_kg:r[5]??0,assistance_kg:r[6],reps:r[7],is_warmup:false,next_step:r[9],comment:r[10]||null}));
+    const sRes=await db.from("workout_sets").insert(rows);if(sRes.error)throw sRes.error;
   }
-
-  setBusy(elements.saveWorkout, true);
-  setMessage(elements.workoutMessage, "Сохраняю…");
-  const workoutPayload = {
-    performed_at: new Date(elements.performedAt.value).toISOString(),
-    notes: elements.notes.value.trim() || null,
-  };
-
-  let workoutId = state.editingWorkoutId;
-  let error;
-  if (workoutId) {
-    ({ error } = await db.from("workouts").update(workoutPayload).eq("id", workoutId));
-    if (!error) ({ error } = await db.from("workout_sets").delete().eq("workout_id", workoutId));
-  } else {
-    const result = await db.from("workouts").insert(workoutPayload).select("id").single();
-    error = result.error;
-    workoutId = result.data?.id;
-  }
-
-  if (!error) {
-    ({ error } = await db.from("workout_sets").insert(sets.map((set) => ({ ...set, workout_id: workoutId }))));
-  }
-
-  setBusy(elements.saveWorkout, false);
-  if (error) {
-    setMessage(elements.workoutMessage, `Не удалось сохранить: ${error.message}`, true);
-    return;
-  }
-  resetEditor();
-  await loadData();
+  state.seeded=true;
 }
 
-function editWorkout(id) {
-  const workout = state.workouts.find((item) => item.id === id);
-  if (!workout) return;
-  state.editingWorkoutId = id;
-  elements.editorTitle.textContent = "Редактирование тренировки";
-  elements.saveWorkout.textContent = "Сохранить изменения";
-  elements.cancelEdit.classList.remove("hidden");
-  elements.performedAt.value = localDateTimeValue(new Date(workout.performed_at));
-  elements.notes.value = workout.notes ?? "";
-  elements.setRows.replaceChildren();
-  workout.workout_sets.forEach(addSetRow);
-  document.querySelector("#workout-form").scrollIntoView({ behavior: "smooth", block: "start" });
+async function loadData(){
+  const [a,e,s]=await Promise.all([
+    db.from("athletes").select("id,slug,name").order("name"),
+    db.from("exercises").select("id,name,muscle_group,image_slug").order("name"),
+    db.from("workout_sets").select("id,workout_id,athlete_id,exercise_id,set_order,weight_kg,assistance_kg,reps,next_step,comment,workouts(id,performed_at,day_type),athletes(id,slug,name),exercises(id,name,muscle_group,image_slug)")
+  ]);if(a.error)throw a.error;if(e.error)throw e.error;if(s.error)throw s.error;
+  state.athletes=a.data??[];state.exercises=e.data??[];state.sets=(s.data??[]).filter(x=>x.athletes&&x.exercises&&x.workouts);
+  if(!state.athletes.length){await ensureSeed();return loadData()}
+  state.athlete=state.athlete&&state.athletes.some(a=>a.slug===state.athlete)?state.athlete:(state.athletes.find(a=>a.slug==="artem")?.slug||state.athletes[0].slug);
+  if(!state.exerciseId)state.exerciseId=latestByExercise()[0]?.exercise_id||null;render();
 }
 
-async function deleteWorkout(id) {
-  if (!window.confirm("Удалить тренировку и все её подходы?")) return;
-  const { error } = await db.from("workouts").delete().eq("id", id);
-  if (error) {
-    window.alert(`Не удалось удалить: ${error.message}`);
-    return;
-  }
-  if (state.editingWorkoutId === id) resetEditor();
-  await loadData();
+function renderAthletes(){const html=state.athletes.map(a=>`<button class="${a.slug===state.athlete?"active":""}" data-athlete="${a.slug}" type="button">${escapeHtml(a.name)}</button>`).join("");el.athletes.innerHTML=html;el.recordAthletes.innerHTML=state.athletes.map(a=>`<button class="${a.slug===state.recordAthlete?"active":""}" data-record-athlete="${a.slug}" type="button">${escapeHtml(a.name)}</button>`).join("");$$('[data-athlete]').forEach(b=>b.onclick=()=>{state.athlete=b.dataset.athlete;state.exerciseId=latestByExercise()[0]?.exercise_id||null;render()});$$('[data-record-athlete]').forEach(b=>b.onclick=()=>{state.recordAthlete=b.dataset.recordAthlete;renderAthletes()})}
+function changeLabel(history){if(history.length<2)return {text:"Первая запись",kind:"wait",icon:"horizontal_rule"};const prev=history.at(-2),last=history.at(-1);const prevLoad=prev.assistance_kg??prev.weight_kg,lastLoad=last.assistance_kg??last.weight_kg;if(Number(lastLoad)!==Number(prevLoad)){const delta=Number(lastLoad)-Number(prevLoad);return {text:`${delta>0?"+":""}${String(delta).replace("-","−")} кг`,kind:"good",icon:"trending_up"}}const delta=last.reps-prev.reps;return delta>0?{text:`+${delta} повт.`,kind:"good",icon:"trending_up"}:{text:"Без изменений",kind:"wait",icon:"trending_flat"}}
+function renderFilters(){const groups=[...new Set(state.exercises.map(e=>e.muscle_group).filter(Boolean))].sort();const current=el.group.value;el.group.innerHTML='<option value="all">Все группы</option>'+groups.map(g=>`<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`).join("");el.group.value=groups.includes(current)?current:"all"}
+function renderList(){let rows=latestByExercise();const q=el.search.value.trim().toLowerCase(),group=el.group.value;rows=rows.filter(s=>(group==="all"||s.exercises.muscle_group===group)&&(!q||s.exercises.name.toLowerCase().includes(q)));if(!rows.length){el.list.innerHTML='<div class="empty-list">Нет результатов по выбранному фильтру</div>';return}el.list.innerHTML=rows.map(s=>{const h=sortedHistory(s.exercise_id),delta=changeLabel(h);return `<button class="result-row ${s.exercise_id===state.exerciseId?"selected":""}" data-exercise="${s.exercise_id}" type="button"><span class="exercise-cell"><img src="${imageFor(s.exercises)}" alt="${escapeHtml(s.exercises.name)}"><span class="exercise-copy"><strong>${escapeHtml(s.exercises.name)}</strong><small>${escapeHtml(s.exercises.muscle_group||"")}</small></span></span><span class="primary-result">${resultLabel(s)}</span><span>${dateLabel(s.workouts.performed_at,true)}</span><span class="target">${escapeHtml(s.next_step||"Повторить результат")}</span><span class="delta ${delta.kind}"><span class="material-symbols-rounded">${delta.icon}</span>${delta.text}</span></button>`}).join("");$$('[data-exercise]').forEach(b=>b.onclick=()=>{state.exerciseId=b.dataset.exercise;renderList();renderDetail()})}
+function renderDetail(){const history=sortedHistory(state.exerciseId);if(!history.length){el.detailEmpty.classList.remove("hidden");el.detail.classList.add("hidden");return}el.detailEmpty.classList.add("hidden");el.detail.classList.remove("hidden");const latest=history.at(-1),exercise=latest.exercises;$("#detail-group").textContent=exercise.muscle_group||"Упражнение";$("#detail-name").textContent=exercise.name;$("#detail-result").textContent=resultLabel(latest);$("#detail-date").textContent=dateLabel(latest.workouts.performed_at);$("#detail-target").textContent=latest.next_step||"Повторить результат";$("#history-list").innerHTML=[...history].reverse().map(s=>`<div class="history-row"><span>${dateLabel(s.workouts.performed_at,true)}</span><strong>${resultLabel(s)}</strong><small>${escapeHtml(s.comment||s.next_step||"")}</small></div>`).join("");if(state.chart)state.chart.destroy();const assisted=history.some(s=>s.assistance_kg!=null);state.chart=new Chart($("#progress-chart"),{type:"line",data:{labels:history.map(s=>dateLabel(s.workouts.performed_at,true)),datasets:[{label:assisted?"Помощь, кг":"Вес, кг",data:history.map(s=>Number(s.assistance_kg??s.weight_kg)),borderColor:"#27663f",backgroundColor:"#27663f",tension:.25,yAxisID:"y"},{label:"Повторы",data:history.map(s=>s.reps),borderColor:"#c76810",backgroundColor:"#c76810",borderDash:[5,4],tension:.25,yAxisID:"r"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{boxWidth:18,font:{family:"Manrope",size:10}}}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:"#eceae3"},ticks:{font:{size:10}}},r:{position:"right",grid:{display:false},ticks:{font:{size:10}}}}}})}
+function render(){renderAthletes();renderFilters();renderList();renderDetail()}
+
+function setDrawerStep(step){["day","exercise","values"].forEach(x=>$("#record-step-"+x).classList.toggle("hidden",x!==step));const i={day:0,exercise:1,values:2}[step];$$('.drawer-progress span').forEach((s,n)=>s.classList.toggle("active",n<=i));$("#record-title").textContent=step==="day"?"Выберите день":step==="exercise"?`День: ${state.recordDay}`:"Запишите результат"}
+function openDrawer(){state.recordDay=null;state.recordExercise=null;state.recordAthlete=state.athlete;el.drawer.classList.add("open");el.drawer.setAttribute("aria-hidden","false");el.backdrop.classList.remove("hidden");document.body.style.overflow="hidden";setDrawerStep("day");renderAthletes()}
+function closeDrawer(){el.drawer.classList.remove("open");el.drawer.setAttribute("aria-hidden","true");el.backdrop.classList.add("hidden");document.body.style.overflow=""}
+function planExercises(day){const groups=day==="Ноги"?["Ноги","Корпус"]:["Спина","Грудь","Плечи","Трапеции"];return state.exercises.filter(e=>groups.includes(e.muscle_group))}
+function latestFor(exerciseId,athleteSlug=state.athlete){return [...state.sets].filter(s=>s.exercise_id===exerciseId&&s.athletes?.slug===athleteSlug).sort((a,b)=>new Date(b.workouts.performed_at)-new Date(a.workouts.performed_at))[0]}
+function renderRecordExercises(){el.recordExercises.innerHTML=planExercises(state.recordDay).map(e=>{const last=latestFor(e.id);return `<button class="exercise-tile" data-record-exercise="${e.id}" type="button"><img src="${imageFor(e)}" alt="${escapeHtml(e.name)}"><span><strong>${escapeHtml(e.name)}</strong><small>${last?`Цель: ${escapeHtml(last.next_step||resultLabel(last))}`:"Нет записей"}</small></span><span class="material-symbols-rounded">chevron_right</span></button>`}).join("");$$('[data-record-exercise]').forEach(b=>b.onclick=()=>selectRecordExercise(b.dataset.recordExercise))}
+function selectRecordExercise(id){state.recordExercise=state.exercises.find(e=>e.id===id);const last=latestFor(id,state.recordAthlete);$("#record-selected").innerHTML=`<img src="${imageFor(state.recordExercise)}" alt="${escapeHtml(state.recordExercise.name)}"><div><h3>${escapeHtml(state.recordExercise.name)}</h3><p>${last?`Следующая цель: ${escapeHtml(last.next_step||resultLabel(last))}`:"Первый результат"}</p></div>`;const assisted=state.recordExercise.image_slug==="assisted-pullup";$("#weight-label").textContent=assisted?"Помощь, кг":"Вес, кг";$("#record-weight").value=last?Number(last.assistance_kg??last.weight_kg):0;$("#record-reps").value=last?.reps||10;$("#record-comment").value="";setDrawerStep("values");renderAthletes()}
+function nextTarget(weight,reps,assisted){if(assisted)return `${String(weight).replace("-","−")} кг × ${Math.min(reps+2,15)}–${Math.min(reps+4,18)}`;return reps>=15?`${weight+5} кг × 10–12`:`${weight} кг × ${reps+1}–${Math.min(reps+3,15)}`}
+async function saveRecord(event){event.preventDefault();const button=$("#save-record"),weight=Number($("#record-weight").value),reps=Number($("#record-reps").value),athlete=state.athletes.find(a=>a.slug===state.recordAthlete),assisted=state.recordExercise.image_slug==="assisted-pullup";if(previewMode){closeDrawer();showToast(`${athlete.name}: ${state.recordExercise.name} — пример записи`);return}button.disabled=true;message(el.recordMessage,"Сохраняю…");const w=await db.from("workouts").insert({performed_at:new Date().toISOString(),day_type:state.recordDay}).select("id").single();let error=w.error;if(!error){const row={workout_id:w.data.id,athlete_id:athlete.id,exercise_id:state.recordExercise.id,set_order:1,weight_kg:assisted?0:weight,assistance_kg:assisted?weight:null,reps,is_warmup:false,next_step:nextTarget(weight,reps,assisted),comment:$("#record-comment").value.trim()||null};({error}=await db.from("workout_sets").insert(row))}button.disabled=false;if(error){message(el.recordMessage,error.message,true);return}message(el.recordMessage);await loadData();closeDrawer();showToast(`${athlete.name}: ${state.recordExercise.name} — записано`)}
+
+function bind(){
+  $("#today-label").textContent=new Intl.DateTimeFormat("ru-RU",{day:"numeric",month:"long",year:"numeric"}).format(new Date());
+  el.authForm.onsubmit=async e=>{e.preventDefault();const b=e.currentTarget.querySelector("button");b.disabled=true;const {error}=await db.auth.signInWithOtp({email:$("#email").value,options:{emailRedirectTo:`${location.origin}${location.pathname}`}});b.disabled=false;message(el.authMessage,error?error.message:"Ссылка отправлена. Проверьте почту.",Boolean(error))};
+  $("#sign-out-button").onclick=()=>db.auth.signOut();el.group.onchange=renderList;el.search.oninput=renderList;$("#open-recorder").onclick=openDrawer;$("#close-recorder").onclick=closeDrawer;el.backdrop.onclick=closeDrawer;
+  $$('.day-card').forEach(b=>b.onclick=()=>{state.recordDay=b.dataset.day;renderRecordExercises();setDrawerStep("exercise")});$("#back-to-day").onclick=()=>setDrawerStep("day");$("#back-to-exercises").onclick=()=>setDrawerStep("exercise");
+  $$('.stepper button').forEach(b=>b.onclick=()=>{const input=b.dataset.step==="weight"?$("#record-weight"):$("#record-reps");input.value=Math.max(Number(input.min),Number(input.value||0)+Number(b.dataset.delta))});$("#record-form").onsubmit=saveRecord;
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer()});
 }
-
-async function saveExercise(event) {
-  event.preventDefault();
-  const submitter = event.submitter;
-  if (submitter?.value === "cancel") {
-    elements.exerciseDialog.close();
-    return;
-  }
-  const name = document.querySelector("#exercise-name").value.trim();
-  if (!name) return;
-  setBusy(document.querySelector("#save-exercise-button"), true);
-  const { data, error } = await db
-    .from("exercises")
-    .insert({ name, muscle_group: document.querySelector("#muscle-group").value.trim() || null })
-    .select("id,name,muscle_group")
-    .single();
-  setBusy(document.querySelector("#save-exercise-button"), false);
-  if (error) {
-    setMessage(elements.exerciseMessage, error.code === "23505" ? "Такое упражнение уже существует." : error.message, true);
-    return;
-  }
-  state.exercises.push(data);
-  state.exercises.sort((a, b) => a.name.localeCompare(b.name, "ru"));
-  elements.exerciseForm.reset();
-  elements.exerciseDialog.close();
-  [...elements.setRows.querySelectorAll(".set-exercise")].forEach((select) => {
-    const previous = select.value;
-    select.innerHTML = `<option value="">Выберите…</option>${exerciseOptions(previous)}`;
-  });
-}
-
-function calculations() {
-  const workingSets = state.workouts.flatMap((workout) => workout.workout_sets.filter((set) => !set.is_warmup));
-  const volume = workingSets.reduce((sum, set) => sum + Number(set.weight_kg) * set.reps, 0);
-  const e1rm = workingSets.reduce((best, set) => Math.max(best, Number(set.weight_kg) * (1 + set.reps / 30)), 0);
-  return { workingSets, volume, e1rm };
-}
-
-function renderStats() {
-  const { workingSets, volume, e1rm } = calculations();
-  document.querySelector("#stat-workouts").textContent = state.workouts.length;
-  document.querySelector("#stat-sets").textContent = workingSets.length;
-  document.querySelector("#stat-volume").textContent = `${formatNumber(volume, 0)} кг`;
-  document.querySelector("#stat-e1rm").textContent = `${formatNumber(e1rm)} кг`;
-}
-
-function renderHistory() {
-  if (!state.workouts.length) {
-    elements.history.innerHTML = '<p class="empty">Пока нет тренировок. Добавьте первую выше.</p>';
-    return;
-  }
-  elements.history.innerHTML = state.workouts.map((workout) => `
-    <article class="workout-card">
-      <div class="workout-card-header">
-        <div>
-          <h3>${formatDate(workout.performed_at)}</h3>
-          ${workout.notes ? `<p>${escapeHtml(workout.notes)}</p>` : ""}
-        </div>
-        <div class="workout-actions">
-          <button class="secondary edit-workout" data-id="${workout.id}" type="button">Изменить</button>
-          <button class="danger delete-workout" data-id="${workout.id}" type="button">Удалить</button>
-        </div>
-      </div>
-      <ul>${workout.workout_sets.map((set) => `<li>${escapeHtml(set.exercises?.name ?? "Упражнение")} — ${formatNumber(Number(set.weight_kg), 2)} кг × ${set.reps}${set.rpe ? `, RPE ${set.rpe}` : ""}${set.is_warmup ? " (разминка)" : ""}</li>`).join("")}</ul>
-    </article>`).join("");
-  elements.history.querySelectorAll(".edit-workout").forEach((button) => button.addEventListener("click", () => editWorkout(button.dataset.id)));
-  elements.history.querySelectorAll(".delete-workout").forEach((button) => button.addEventListener("click", () => deleteWorkout(button.dataset.id)));
-}
-
-function renderCharts() {
-  state.charts.forEach((chart) => chart.destroy());
-  state.charts = [];
-  const chronological = [...state.workouts].reverse();
-  const labels = chronological.map((workout) => new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "short" }).format(new Date(workout.performed_at)));
-  const volumeData = chronological.map((workout) => workout.workout_sets.filter((set) => !set.is_warmup).reduce((sum, set) => sum + Number(set.weight_kg) * set.reps, 0));
-  const e1rmData = chronological.map((workout) => workout.workout_sets.filter((set) => !set.is_warmup).reduce((best, set) => Math.max(best, Number(set.weight_kg) * (1 + set.reps / 30)), 0));
-  const common = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } };
-  state.charts.push(new window.Chart(document.querySelector("#volume-chart"), {
-    type: "bar",
-    data: { labels, datasets: [{ data: volumeData, backgroundColor: "#6ca17d" }] },
-    options: common,
-  }));
-  state.charts.push(new window.Chart(document.querySelector("#e1rm-chart"), {
-    type: "line",
-    data: { labels, datasets: [{ data: e1rmData, borderColor: "#28663f", backgroundColor: "#28663f", tension: .25 }] },
-    options: common,
-  }));
-}
-
-function render() {
-  renderStats();
-  renderHistory();
-  renderCharts();
-}
-
-async function handleSession(session) {
-  if (!session) {
-    showOnly("auth");
-    return;
-  }
-  showOnly("app");
-  resetEditor();
-  try {
-    await loadData();
-  } catch (error) {
-    setMessage(elements.workoutMessage, `Ошибка загрузки: ${error.message}`, true);
-  }
-}
-
-async function init() {
-  if (!configured || !window.supabase) {
-    showOnly("setup");
-    return;
-  }
-  db = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
-  const { data } = await db.auth.getSession();
-  await handleSession(data.session);
-  db.auth.onAuthStateChange((_event, session) => handleSession(session));
-
-  elements.authForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const button = event.currentTarget.querySelector("button");
-    setBusy(button, true);
-    const { error } = await db.auth.signInWithOtp({
-      email: document.querySelector("#email").value,
-      options: { emailRedirectTo: `${window.location.origin}${window.location.pathname}` },
-    });
-    setBusy(button, false);
-    setMessage(elements.authMessage, error ? error.message : "Ссылка отправлена. Проверьте почту.", Boolean(error));
-  });
-  elements.signOut.addEventListener("click", () => db.auth.signOut());
-  elements.workoutForm.addEventListener("submit", saveWorkout);
-  elements.addSet.addEventListener("click", () => addSetRow());
-  elements.cancelEdit.addEventListener("click", resetEditor);
-  elements.refresh.addEventListener("click", () => loadData().catch((error) => window.alert(error.message)));
-  elements.addExercise.addEventListener("click", () => {
-    setMessage(elements.exerciseMessage);
-    elements.exerciseDialog.showModal();
-  });
-  elements.exerciseForm.addEventListener("submit", saveExercise);
-}
-
-init().catch((error) => {
-  console.error(error);
-  showOnly("setup");
-  elements.setup.insertAdjacentHTML("beforeend", `<p class="message error">${escapeHtml(error.message)}</p>`);
-});
+async function sessionChanged(session){if(!session){show("auth");return}show("app");try{await loadData()}catch(error){console.error(error);showToast(`Ошибка базы: ${error.message}`)}}
+function loadPreview(){const seed=window.GYM_SEED;state.athletes=seed.athletes.map(a=>({...a,id:a.slug}));const map=new Map();seed.records.forEach(r=>map.set(r[4],{id:r[4],name:r[3],muscle_group:r[2],image_slug:r[4]}));state.exercises=[...map.values()];state.sets=seed.records.map((r,i)=>({id:String(i),workout_id:r[0],athlete_id:r[1],exercise_id:r[4],weight_kg:r[5]??0,assistance_kg:r[6],reps:r[7],next_step:r[9],comment:r[10],workouts:{id:r[0],performed_at:`${r[0]}T12:00:00+02:00`,day_type:r[0]==="2026-08-24"?"Спина":"Ноги"},athletes:state.athletes.find(a=>a.slug===r[1]),exercises:state.exercises.find(e=>e.id===r[4])}));state.athlete="artem";state.exerciseId="leg-curl";show("app");render()}
+async function init(){bind();if(previewMode){loadPreview();return}if(!configured||!window.supabase){show("setup");return}db=window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY);const {data}=await db.auth.getSession();await sessionChanged(data.session);db.auth.onAuthStateChange((_e,s)=>setTimeout(()=>sessionChanged(s),0))}
+init().catch(error=>{console.error(error);show("setup")});
