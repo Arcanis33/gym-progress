@@ -27,6 +27,7 @@
 - Desktop exercise click → right-side statistics with chart, target, percentage and history: passed.
 - Mobile exercise tap → full-screen statistics card with chart, percentage, history and close action: passed at 390 × 844.
 - Artem blue/steel palette and artwork-backed primary action: passed on desktop and mobile.
+- Theme artwork is a non-interactive, unblurred background layer behind the dashboard; the separate header gallery and button texture are removed: passed on desktop and mobile.
 - Browser console: no errors or warnings.
 - Local preview HTTP response: 200.
 
