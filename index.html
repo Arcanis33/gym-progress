@@ -13,7 +13,16 @@
   <section id="setup-screen" class="center-screen hidden"><div class="auth-card"><h1>Нужно подключить Supabase</h1><p>Заполните публичные настройки в <code>config.js</code>.</p></div></section>
   <section id="auth-screen" class="center-screen hidden"><form id="auth-form" class="auth-card"><p class="brand-kicker">GYM LOG</p><h1>Прогресс без лишнего шума</h1><p>Войдите по одноразовой ссылке. На этом устройстве вход сохранится.</p><label>Email<input id="email" type="email" autocomplete="email" placeholder="name@example.com" required></label><button type="submit">Получить ссылку</button><p id="auth-message" class="message" role="status"></p></form></section>
 
-  <div id="app-screen" class="app-shell hidden">
+  <div id="app-screen" class="app-shell theme-artem hidden">
+    <div class="theme-gallery" aria-hidden="true">
+      <img class="theme-image theme-image-one artem-art" src="./assets/themes/artem-rumbling.jpg" alt="">
+      <img class="theme-image theme-image-two artem-art" src="./assets/themes/artem-itachi.webp" alt="">
+      <img class="theme-image theme-image-three artem-art" src="./assets/themes/artem-angels.webp" alt="">
+      <img class="theme-image theme-image-one natasha-art" src="./assets/themes/natasha-portrait.jpg" alt="">
+      <img class="theme-image theme-image-two natasha-art" src="./assets/themes/natasha-palette.jpg" alt="">
+      <img class="theme-image theme-image-three natasha-art" src="./assets/themes/natasha-red.jpg" alt="">
+      <img class="sakura-branch natasha-art" src="./assets/themes/sakura-branch.png" alt="">
+    </div>
     <header class="topbar"><div class="brand"><span>Спокойная аналитика</span><small>дневник прогресса</small></div><div id="athlete-switcher" class="segmented"></div><div class="top-actions"><span class="today"><span class="material-symbols-rounded">calendar_today</span><span id="today-label"></span></span><button id="sign-out-button" class="icon-button" type="button" aria-label="Выйти"><span class="material-symbols-rounded">logout</span></button></div></header>
     <main class="main-grid">
       <section class="results-pane">
