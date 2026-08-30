@@ -18,7 +18,7 @@ function personSets(){return state.sets.filter(s=>s.athletes?.slug===state.athle
 function sortedHistory(exerciseId){return personSets().filter(s=>s.exercise_id===exerciseId).sort((a,b)=>new Date(a.workouts.performed_at)-new Date(b.workouts.performed_at))}
 function latestByExercise(){const map=new Map();[...personSets()].sort((a,b)=>new Date(b.workouts.performed_at)-new Date(a.workouts.performed_at)).forEach(s=>{if(!map.has(s.exercise_id))map.set(s.exercise_id,s)});return [...map.values()]}
 function showToast(text){el.toast.textContent=text;el.toast.classList.remove("hidden");setTimeout(()=>el.toast.classList.add("hidden"),2600)}
-function applyAthleteTheme(){const isNatasha=state.athlete==="natasha";[el.app,document.body].forEach(node=>{node.classList.toggle("theme-natasha",isNatasha);node.classList.toggle("theme-artem",!isNatasha)});document.documentElement.style.colorScheme=isNatasha?"light":"dark"}
+function applyAthleteTheme(){const isNatasha=state.athlete==="natasha";[el.app,document.body].forEach(node=>{node.classList.toggle("theme-natasha",isNatasha);node.classList.toggle("theme-artem",!isNatasha)});document.documentElement.style.colorScheme="light"}
 
 async function ensureSeed(){
   if(state.athletes.length||!window.GYM_SEED)return;
