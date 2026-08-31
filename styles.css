@@ -245,6 +245,7 @@
 .section-nav .material-symbols-rounded{font-size:19px}
 .nutrition-open{--nutrition-accent:#387257;--nutrition-soft:#eaf4ee;--nutrition-line:#d8e5dc}
 .nutrition-open .persona-strip{display:none!important}
+.nutrition-open .message{color:var(--nutrition-accent)!important}.nutrition-open .message.error{color:#a43131!important}
 .nutrition-open .section-nav button.active{border-color:var(--nutrition-line);background:var(--nutrition-soft);color:var(--nutrition-accent)}
 .nutrition-view{position:relative;z-index:1;min-height:calc(100dvh - 76px);padding:38px clamp(20px,5vw,76px) 70px;background:linear-gradient(180deg,#f6faf7 0,#fbfcfb 260px,#f8faf9 100%)}
 .nutrition-hero{max-width:1180px;margin:0 auto 24px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
