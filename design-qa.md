@@ -81,4 +81,17 @@ Focused comparison was required for the recording banner and result-entry artwor
 - Typography, spacing, palette, assets and copy remain unchanged. Both themes and the complete recording flow were rechecked; browser console errors/warnings: none.
 - Remaining P0/P1/P2 findings: none.
 
+## Exercise discovery and analytics expansion
+
+- Mobile implementation: `implementation-mobile-analytics-v3.png` and `implementation-mobile-image-dialog.png`, captured at 390 × 844 CSS/output px, device scale 1.
+- Desktop implementation: `implementation-desktop-analytics-v3.png`, captured at 1440 × 1024 CSS/output px, device scale 1.
+- State: preview dataset, positive-progress exercise with two sessions, expanded statistics view, and exercise-image dialog.
+- Positive changes: arrow, value, and detail progress percentage use the same semantic green in both athlete themes.
+- Muscle-group discovery: compact Material Symbols badges sit directly beside exercise names in the list, recorder and detail heading without changing the row structure.
+- Analytics: the mixed dual-axis chart was replaced with separate working-weight, repetition, and estimated-1RM charts. Each date represents the best working set of that workout, preventing duplicate or competing points. Assisted exercises omit the invalid 1RM chart.
+- Useful summary metrics: best working load, best repetitions, estimated 1RM (or best assisted set) are shown; no total-volume metric was introduced.
+- Image editing: mobile dialog, preview, client-side resize/compression, reset-to-default, and preview upload flow passed. Supabase migration completed successfully for persistent storage.
+- Fonts, spacing, colors, image quality and copy were checked at both viewports. Primary interactions and browser console: passed with no application warnings or errors.
+- Remaining P0/P1/P2 findings: none.
+
 final result: passed

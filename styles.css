@@ -176,3 +176,41 @@
   .theme-artem .record-form-art img{object-position:52% top}
   .theme-natasha .record-form-art img{object-position:center top}
 }
+
+/* Exercise discovery, progress analytics and image editing */
+:root{--progress-green:#21894b;--progress-green-soft:#e7f5ec}
+.theme-artem .delta.good,.theme-natasha .delta.good,.delta.good,.detail-facts dd.positive{color:var(--progress-green)!important}
+.detail-facts dd.negative{color:#b74343}
+.exercise-name-line{display:flex;align-items:center;gap:7px;min-width:0}
+.exercise-name-line strong,.exercise-name-line h3{min-width:0}
+.muscle-badge{display:inline-grid;place-items:center;flex:0 0 auto;width:25px;height:25px;border-radius:8px;background:var(--theme-soft);color:var(--theme-accent);font-size:16px!important}
+.detail-title{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.detail-title-main{display:flex;align-items:center;gap:10px;min-width:0}
+.detail-muscle-badge{width:38px;height:38px;border-radius:11px;font-size:22px!important}
+.image-edit-button{flex:0 0 auto;color:var(--theme-accent)}
+.analytics-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 20px}
+.analytics-summary>div{display:grid;gap:4px;align-content:start;padding:11px 10px;border:1px solid var(--line);border-radius:10px;background:#f8fafb;min-height:70px}
+.analytics-summary span{font-size:10px;line-height:1.25;color:var(--muted)}
+.analytics-summary strong{font-size:14px;line-height:1.25;color:#242a2e}
+.chart-stack{display:grid;gap:10px}
+.chart-card{padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.chart-card h4{font-size:12px;margin:0 0 8px;color:#3a444a}
+.chart-canvas-wrap{height:150px}
+.chart-canvas-wrap canvas{width:100%!important;height:100%!important}
+.image-preview-shell{display:grid;place-items:center;height:210px;border:1px solid var(--line);border-radius:13px;background:#f3f6f7;overflow:hidden}
+.image-preview-shell img{width:100%;height:100%;object-fit:cover}
+.file-picker input{position:absolute;inline-size:1px;block-size:1px;opacity:0;pointer-events:none}
+.file-picker>span{height:48px;display:flex;align-items:center;justify-content:center;gap:8px;border:1px dashed var(--theme-accent);border-radius:10px;background:var(--theme-soft);color:var(--theme-accent);font-weight:800}
+.dialog-actions{display:grid;grid-template-columns:1fr 1.4fr;gap:9px;align-items:end}
+.dialog-actions .save-record{margin-top:14px}
+.secondary-button{height:48px;border:1px solid var(--line);border-radius:10px;background:#fff;color:#4b555b;font-weight:800}
+.theme-artem .analytics-summary>div,.theme-natasha .analytics-summary>div,.theme-artem .chart-card,.theme-natasha .chart-card{background:#fff;border-color:var(--line)}
+@media(max-width:620px){
+  .exercise-copy .muscle-badge{width:23px;height:23px;font-size:15px!important}
+  .exercise-copy strong{max-width:128px}
+  .detail-pane.mobile-open .analytics-summary{grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:18px}
+  .detail-pane.mobile-open .chart-canvas-wrap{height:180px}
+  .detail-pane.mobile-open .chart-card{padding:11px 9px}
+  .image-dialog form{padding:18px}
+  .image-preview-shell{height:190px}
+}
