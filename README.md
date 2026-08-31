@@ -18,6 +18,7 @@
 - автоматическая публикация на GitHub Pages.
 - отдельный дневник питания для Артёма и Наташи;
 - ввод еды обычной фразой, проверка состава и точный расчёт КБЖУ по базе продуктов;
+- расчёт неизвестного продукта по указанной в сообщении ценности, например `50 г йогурта, 30 ккал на 100 г`;
 - безопасный разбор текста через OpenRouter в Supabase Edge Function — секретный ключ не попадает в браузер.
 
 ## 1. Создание Supabase
@@ -64,6 +65,7 @@ Workflow находится в [`.github/workflows/pages.yml`](./.github/workflo
 ## 5. Питание и OpenRouter
 
 1. Один раз выполните [`supabase/migrate_v6_nutrition.sql`](./supabase/migrate_v6_nutrition.sql) в **Supabase → SQL Editor**.
+   Для существующей базы затем выполните [`supabase/migrate_v7_nutrition_facts.sql`](./supabase/migrate_v7_nutrition_facts.sql).
 2. Разверните Edge Function из [`supabase/functions/parse-meal`](./supabase/functions/parse-meal).
 3. В **Supabase → Edge Functions → Secrets** добавьте `OPENROUTER_API_KEY`. Ключ нельзя добавлять в `config.js` или коммитить в GitHub.
 4. Необязательно задайте `OPENROUTER_MODEL`. По умолчанию используется бесплатный маршрутизатор `openrouter/free`.
