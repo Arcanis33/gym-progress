@@ -195,6 +195,7 @@
 .chart-stack{display:grid;gap:10px}
 .chart-card{padding:12px;border:1px solid var(--line);border-radius:12px;background:#fff}
 .chart-card h4{font-size:12px;margin:0 0 8px;color:#3a444a}
+.chart-card:has(#reps-chart){display:none}
 .chart-canvas-wrap{height:150px}
 .chart-canvas-wrap canvas{width:100%!important;height:100%!important}
 .image-preview-shell{display:grid;place-items:center;height:210px;border:1px solid var(--line);border-radius:13px;background:#f3f6f7;overflow:hidden}

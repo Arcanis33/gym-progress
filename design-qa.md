@@ -94,4 +94,10 @@ Focused comparison was required for the recording banner and result-entry artwor
 - Fonts, spacing, colors, image quality and copy were checked at both viewports. Primary interactions and browser console: passed with no application warnings or errors.
 - Remaining P0/P1/P2 findings: none.
 
+## Combined load and repetition chart
+
+- The separate working-load and repetition cards were replaced by one dual-axis chart: kilograms use the left scale and repetitions use the right scale.
+- Both series remain independently identifiable through a compact legend and tooltip; the estimated-1RM chart remains separate.
+- The combined card reduces vertical scrolling in the mobile exercise detail without removing either metric.
+
 final result: passed
