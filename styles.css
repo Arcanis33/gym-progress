@@ -166,6 +166,13 @@
 @media(max-width:620px){
   .record-values-layout{overflow:hidden}
   #record-form{width:80%;padding-right:13%;background:linear-gradient(90deg,#fff 0%,#fff 68%,rgba(255,255,255,.98) 76%,rgba(255,255,255,.82) 86%,rgba(255,255,255,.36) 95%,transparent 100%)}
-  .record-form-art{width:54%;right:-2%}
-  .record-form-art img{-webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.12) 16%,rgba(0,0,0,.5) 32%,#000 52%,#000 100%);mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.12) 16%,rgba(0,0,0,.5) 32%,#000 52%,#000 100%)}
+  .record-form-art{width:56%;right:-2%}
+  .record-form-art img{
+    -webkit-mask-image:radial-gradient(ellipse 56% 54% at 58% 52%,#000 0%,#000 48%,rgba(0,0,0,.82) 64%,rgba(0,0,0,.34) 80%,transparent 100%);
+    mask-image:radial-gradient(ellipse 56% 54% at 58% 52%,#000 0%,#000 48%,rgba(0,0,0,.82) 64%,rgba(0,0,0,.34) 80%,transparent 100%);
+    -webkit-mask-repeat:no-repeat;
+    mask-repeat:no-repeat;
+  }
+  .theme-artem .record-form-art img{object-position:52% top}
+  .theme-natasha .record-form-art img{object-position:center top}
 }
