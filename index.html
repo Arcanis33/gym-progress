@@ -5,9 +5,9 @@
   <meta name="theme-color" content="#f8f6f1"><title>Дневник тренировок</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=22">
+  <link rel="stylesheet" href="./styles.css?v=23">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-  <script src="./config.js"></script><script src="./data/seed.js"></script><script type="module" src="./js/app.js?v=14"></script>
+  <script src="./config.js"></script><script src="./data/foods.js?v=1"></script><script src="./data/seed.js"></script><script type="module" src="./js/app.js?v=15"></script>
 </head>
 <body>
   <section id="setup-screen" class="center-screen hidden"><div class="auth-card"><h1>Нужно подключить Supabase</h1><p>Заполните публичные настройки в <code>config.js</code>.</p></div></section>
@@ -30,7 +30,7 @@
     </main>
     <main id="nutrition-view" class="nutrition-view hidden">
       <section class="nutrition-hero">
-        <div><p class="nutrition-kicker">ДНЕВНИК ПИТАНИЯ</p><h1>Что вы съели?</h1><p>Напишите обычной фразой — продукты будут распознаны, а калории и КБЖУ посчитаны по базе.</p></div>
+        <div><p class="nutrition-kicker">ДНЕВНИК ПИТАНИЯ</p><h1>Что вы съели?</h1><p>Напишите обычной фразой — продукты будут распознаны, а калории и КБЖУ посчитаны по базе. Для еды, которую обычно готовят с маслом, мы добавим небольшой запас.</p></div>
         <div class="nutrition-today"><span>Сегодня</span><strong id="nutrition-today-kcal">0 ккал</strong><small id="nutrition-today-macros">Б 0 · Ж 0 · У 0</small></div>
       </section>
       <section class="nutrition-layout">
@@ -45,7 +45,7 @@
           <div id="meal-preview" class="meal-preview hidden">
             <div class="nutrition-section-title"><div><p>ПРОВЕРЬТЕ РЕЗУЛЬТАТ</p><h2>Состав порции</h2></div><button id="edit-meal" class="text-button" type="button">Изменить</button></div>
             <div id="meal-items" class="meal-items"></div>
-            <div class="meal-total"><span><small>Итого</small><strong id="meal-total-kcal">0 ккал</strong></span><span id="meal-total-macros">Б 0 · Ж 0 · У 0</span></div>
+            <div class="meal-total"><span><small>Итого</small><strong id="meal-total-kcal">0 ккал</strong><em id="meal-buffer-note" class="hidden"></em></span><span id="meal-total-macros">Б 0 · Ж 0 · У 0</span></div>
             <label class="meal-name-label">Название приёма пищи<input id="meal-name" maxlength="80" placeholder="Например, обед"></label>
             <button id="save-meal" class="nutrition-primary" type="button"><span class="material-symbols-rounded">check_circle</span>Сохранить приём пищи</button>
           </div>
