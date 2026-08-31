@@ -100,4 +100,13 @@ Focused comparison was required for the recording banner and result-entry artwor
 - Both series remain independently identifiable through a compact legend and tooltip; the estimated-1RM chart remains separate.
 - The combined card reduces vertical scrolling in the mobile exercise detail without removing either metric.
 
+## Muscle taxonomy and workout-day settings
+
+- Six supplied anatomy references were converted into transparent, consistently cropped project assets for Chest, Abs, Legs, Back, Shoulders, and Arms.
+- Legacy Core exercises map to Abs; legacy Trapezius exercises map to Back, preserving all workout history.
+- Mobile workout-day settings were tested at 390 × 844 CSS px: switching days, removing an exercise, saving, and reopening the selected day all passed.
+- The settings dialog is vertically scrollable without horizontal overflow; the empty-day state offers a direct route back to configuration.
+- Implementation evidence: `implementation-mobile-day-settings-v4.jpg`.
+- Custom exercise images use unique object paths without upsert; the live Storage policies now allow authenticated users to insert, read, update, and delete only files inside their own user-ID folder.
+
 final result: passed
