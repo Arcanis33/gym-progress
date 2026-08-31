@@ -71,4 +71,14 @@ Focused comparison was required for the recording banner and result-entry artwor
 - Browser console errors/warnings: none.
 - Remaining P0/P1/P2 findings: none.
 
+## Form-overlay seam correction
+
+- Source visual truth: `C:\Users\test1\AppData\Local\Temp\codex-clipboard-3355b70b-f41d-4a7a-92bc-96beebd5ac07.png` (423 × 267 px), focused on the visible vertical rectangle below the save button.
+- Implementations: `implementation-artem-values-seam-fixed.png` and `implementation-natasha-values-seam-fixed.png`, captured at 390 × 844 CSS/output px, device scale 1.
+- Focused normalized comparison: `qa-form-seam-comparison.png`, showing the same lower form/art region before and after.
+- Earlier P1 diagnosis corrected: the visible seam came from the finite rectangular background of `#record-form`, not from a duplicate artwork layer.
+- Fix: the mobile form container is now transparent; the input fields and save button retain their own opaque surfaces, so readability remains intact while the single masked image is uninterrupted underneath.
+- Typography, spacing, palette, assets and copy remain unchanged. Both themes and the complete recording flow were rechecked; browser console errors/warnings: none.
+- Remaining P0/P1/P2 findings: none.
+
 final result: passed
