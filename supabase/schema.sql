@@ -16,6 +16,7 @@ create table if not exists public.exercises (
   name text not null check (char_length(name) between 1 and 120),
   muscle_group text check (muscle_group is null or char_length(muscle_group) <= 80),
   image_slug text check (image_slug is null or image_slug ~ '^[a-z0-9_-]+$'),
+  image_url text,
   created_at timestamptz not null default now(),
   unique (user_id, name)
 );
@@ -100,3 +101,15 @@ for each row execute function public.set_updated_at();
 
 revoke all on public.athletes, public.exercises, public.workouts, public.workout_sets, public.body_metrics from anon;
 grant select, insert, update, delete on public.athletes, public.exercises, public.workouts, public.workout_sets, public.body_metrics to authenticated;
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('exercise-images', 'exercise-images', true, 2097152, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do update set public = excluded.public, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
+
+create policy "Users upload own exercise images" on storage.objects for insert to authenticated
+with check (bucket_id = 'exercise-images' and (storage.foldername(name))[1] = auth.uid()::text);
+create policy "Users update own exercise images" on storage.objects for update to authenticated
+using (bucket_id = 'exercise-images' and (storage.foldername(name))[1] = auth.uid()::text)
+with check (bucket_id = 'exercise-images' and (storage.foldername(name))[1] = auth.uid()::text);
+create policy "Users delete own exercise images" on storage.objects for delete to authenticated
+using (bucket_id = 'exercise-images' and (storage.foldername(name))[1] = auth.uid()::text);
