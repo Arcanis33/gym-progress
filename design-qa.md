@@ -108,5 +108,6 @@ Focused comparison was required for the recording banner and result-entry artwor
 - The settings dialog is vertically scrollable without horizontal overflow; the empty-day state offers a direct route back to configuration.
 - Implementation evidence: `implementation-mobile-day-settings-v4.jpg`.
 - Custom exercise images use unique object paths without upsert; the live Storage policies now allow authenticated users to insert, read, update, and delete only files inside their own user-ID folder.
+- Workout-day settings dialog is pinned to the visual viewport. Its header, tabs, and save action stay fixed while only the exercise list scrolls; verified unchanged before/after edits at 390×844 and 1440×900.
 
 final result: passed
