@@ -14,11 +14,21 @@ create table if not exists public.exercises (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade default auth.uid(),
   name text not null check (char_length(name) between 1 and 120),
-  muscle_group text check (muscle_group is null or char_length(muscle_group) <= 80),
+  muscle_group text check (muscle_group is null or muscle_group in ('Грудь', 'Пресс', 'Ноги', 'Спина', 'Плечи', 'Руки')),
   image_slug text check (image_slug is null or image_slug ~ '^[a-z0-9_-]+$'),
   image_url text,
   created_at timestamptz not null default now(),
   unique (user_id, name)
+);
+
+create table if not exists public.workout_day_exercises (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade default auth.uid(),
+  exercise_id uuid not null references public.exercises(id) on delete cascade,
+  day_type text not null check (day_type in ('Ноги', 'Спина')),
+  position integer not null default 0 check (position >= 0),
+  created_at timestamptz not null default now(),
+  unique (user_id, exercise_id, day_type)
 );
 
 create table if not exists public.workouts (
@@ -60,11 +70,13 @@ create table if not exists public.body_metrics (
 create index if not exists workouts_user_date_idx on public.workouts(user_id, performed_at desc);
 create index if not exists athletes_user_slug_idx on public.athletes(user_id, slug);
 create index if not exists exercises_user_name_idx on public.exercises(user_id, name);
+create index if not exists workout_day_exercises_user_day_idx on public.workout_day_exercises(user_id, day_type, position);
 create index if not exists workout_sets_workout_idx on public.workout_sets(workout_id, set_order);
 create index if not exists workout_sets_exercise_idx on public.workout_sets(exercise_id);
 create index if not exists body_metrics_user_date_idx on public.body_metrics(user_id, measured_at desc);
 
 alter table public.exercises enable row level security;
+alter table public.workout_day_exercises enable row level security;
 alter table public.athletes enable row level security;
 alter table public.workouts enable row level security;
 alter table public.workout_sets enable row level security;
@@ -72,6 +84,11 @@ alter table public.body_metrics enable row level security;
 
 create policy "Users manage own exercises" on public.exercises
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+create policy "Users manage own workout days" on public.workout_day_exercises
+  for all using (auth.uid() = user_id) with check (
+    auth.uid() = user_id
+    and exists (select 1 from public.exercises e where e.id = exercise_id and e.user_id = auth.uid())
+  );
 create policy "Users manage own athletes" on public.athletes
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 create policy "Users manage own workouts" on public.workouts
@@ -99,17 +116,19 @@ drop trigger if exists workouts_set_updated_at on public.workouts;
 create trigger workouts_set_updated_at before update on public.workouts
 for each row execute function public.set_updated_at();
 
-revoke all on public.athletes, public.exercises, public.workouts, public.workout_sets, public.body_metrics from anon;
-grant select, insert, update, delete on public.athletes, public.exercises, public.workouts, public.workout_sets, public.body_metrics to authenticated;
+revoke all on public.athletes, public.exercises, public.workout_day_exercises, public.workouts, public.workout_sets, public.body_metrics from anon;
+grant select, insert, update, delete on public.athletes, public.exercises, public.workout_day_exercises, public.workouts, public.workout_sets, public.body_metrics to authenticated;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('exercise-images', 'exercise-images', true, 2097152, array['image/jpeg', 'image/png', 'image/webp'])
 on conflict (id) do update set public = excluded.public, file_size_limit = excluded.file_size_limit, allowed_mime_types = excluded.allowed_mime_types;
 
 create policy "Users upload own exercise images" on storage.objects for insert to authenticated
-with check (bucket_id = 'exercise-images' and (storage.foldername(name))[1] = auth.uid()::text);
+with check (bucket_id = 'exercise-images' and split_part(name, '/', 1) = auth.uid()::text);
+create policy "Users read own exercise images" on storage.objects for select to authenticated
+using (bucket_id = 'exercise-images' and (owner_id = auth.uid()::text or split_part(name, '/', 1) = auth.uid()::text));
 create policy "Users update own exercise images" on storage.objects for update to authenticated
-using (bucket_id = 'exercise-images' and (storage.foldername(name))[1] = auth.uid()::text)
-with check (bucket_id = 'exercise-images' and (storage.foldername(name))[1] = auth.uid()::text);
+using (bucket_id = 'exercise-images' and (owner_id = auth.uid()::text or split_part(name, '/', 1) = auth.uid()::text))
+with check (bucket_id = 'exercise-images' and split_part(name, '/', 1) = auth.uid()::text);
 create policy "Users delete own exercise images" on storage.objects for delete to authenticated
-using (bucket_id = 'exercise-images' and (storage.foldername(name))[1] = auth.uid()::text);
+using (bucket_id = 'exercise-images' and (owner_id = auth.uid()::text or split_part(name, '/', 1) = auth.uid()::text));
