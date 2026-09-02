@@ -67,6 +67,7 @@ Workflow находится в [`.github/workflows/pages.yml`](./.github/workflo
 1. Один раз выполните [`supabase/migrate_v6_nutrition.sql`](./supabase/migrate_v6_nutrition.sql) в **Supabase → SQL Editor**.
    Для существующей базы затем выполните [`supabase/migrate_v7_nutrition_facts.sql`](./supabase/migrate_v7_nutrition_facts.sql).
    После неё выполните [`supabase/migrate_v8_food_catalog_and_cooking_buffer.sql`](./supabase/migrate_v8_food_catalog_and_cooking_buffer.sql), чтобы сохранять консервативный запас калорий на масло и приготовление.
+   Для дневника веса выполните [`supabase/migrate_v9_weight_entries.sql`](./supabase/migrate_v9_weight_entries.sql).
 2. Разверните Edge Function из [`supabase/functions/parse-meal`](./supabase/functions/parse-meal).
 3. В **Supabase → Edge Functions → Secrets** добавьте `OPENROUTER_API_KEY`. Ключ нельзя добавлять в `config.js` или коммитить в GitHub.
 4. Необязательно задайте `OPENROUTER_MODEL`. По умолчанию используется бесплатный маршрутизатор `openrouter/free`.

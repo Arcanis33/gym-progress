@@ -5,9 +5,9 @@
   <meta name="theme-color" content="#f8f6f1"><title>Дневник тренировок</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=23">
+  <link rel="stylesheet" href="./styles.css?v=24">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-  <script src="./config.js"></script><script src="./data/foods.js?v=1"></script><script src="./data/seed.js"></script><script type="module" src="./js/app.js?v=15"></script>
+  <script src="./config.js"></script><script src="./data/foods.js?v=1"></script><script src="./data/seed.js"></script><script type="module" src="./js/app.js?v=16"></script>
 </head>
 <body>
   <section id="setup-screen" class="center-screen hidden"><div class="auth-card"><h1>Нужно подключить Supabase</h1><p>Заполните публичные настройки в <code>config.js</code>.</p></div></section>
@@ -29,11 +29,13 @@
       <aside id="detail-pane" class="detail-pane"><button id="close-detail" class="icon-button detail-close" type="button" aria-label="Закрыть статистику"><span class="material-symbols-rounded">close</span></button><div id="detail-empty" class="empty-state"><span class="material-symbols-rounded">touch_app</span><p>Выберите упражнение, чтобы увидеть динамику</p></div><div id="detail-content" class="hidden"><div class="detail-title"><div class="detail-title-main"><span id="detail-muscle-icon" class="muscle-badge detail-muscle-badge material-symbols-rounded" aria-hidden="true"></span><div><p id="detail-group"></p><h2 id="detail-name"></h2></div></div><button id="change-exercise-image" class="icon-button image-edit-button" type="button" aria-label="Изменить изображение упражнения" title="Изменить изображение"><span class="material-symbols-rounded">add_photo_alternate</span></button></div><dl class="detail-facts"><div><dt>Последний результат</dt><dd id="detail-result"></dd><small id="detail-date"></small></div><div><dt>Следующая цель</dt><dd id="detail-target"></dd></div><div><dt>Прогресс</dt><dd id="detail-progress"></dd><small id="detail-sessions"></small></div></dl><section class="analytics-summary" aria-label="Ключевые показатели"><div><span id="best-load-label">Лучший вес</span><strong id="best-load"></strong></div><div><span>Лучшие повторы</span><strong id="best-reps"></strong></div><div id="estimated-max-card"><span>Расчётный 1ПМ</span><strong id="estimated-max"></strong></div></section><div class="chart-heading"><h3>Динамика</h3><span>лучший подход тренировки</span></div><div class="chart-stack"><article class="chart-card"><h4 id="load-chart-title">Рабочий вес</h4><div class="chart-canvas-wrap"><canvas id="load-chart"></canvas></div></article><article class="chart-card"><h4>Повторения</h4><div class="chart-canvas-wrap"><canvas id="reps-chart"></canvas></div></article><article id="strength-chart-card" class="chart-card"><h4>Расчётный 1ПМ</h4><div class="chart-canvas-wrap"><canvas id="strength-chart"></canvas></div></article></div><h3 class="history-heading">История результатов</h3><div id="history-list" class="mini-history"></div></div></aside>
     </main>
     <main id="nutrition-view" class="nutrition-view hidden">
-      <section class="nutrition-hero">
-        <div><p class="nutrition-kicker">ДНЕВНИК ПИТАНИЯ</p><h1>Что вы съели?</h1><p>Напишите обычной фразой — продукты будут распознаны, а калории и КБЖУ посчитаны по базе. Для еды, которую обычно готовят с маслом, мы добавим небольшой запас.</p></div>
-        <div class="nutrition-today"><span>Сегодня</span><strong id="nutrition-today-kcal">0 ккал</strong><small id="nutrition-today-macros">Б 0 · Ж 0 · У 0</small></div>
-      </section>
-      <section class="nutrition-layout">
+      <nav class="nutrition-tabs" aria-label="Дневник здоровья"><button id="food-tab" class="active" type="button"><span class="material-symbols-rounded">restaurant</span>Рацион</button><button id="weight-tab" type="button"><span class="material-symbols-rounded">monitor_weight</span>Вес</button></nav>
+      <div id="food-panel">
+        <section class="nutrition-hero">
+          <div><p class="nutrition-kicker">ДНЕВНИК ПИТАНИЯ</p><h1>Что вы съели?</h1><p>Напишите обычной фразой — продукты будут распознаны, а калории и КБЖУ посчитаны по базе. Для еды, которую обычно готовят с маслом, мы добавим небольшой запас.</p></div>
+          <div class="nutrition-today"><span>Сегодня</span><strong id="nutrition-today-kcal">0 ккал</strong><small id="nutrition-today-macros">Б 0 · Ж 0 · У 0</small></div>
+        </section>
+        <section class="nutrition-layout">
         <article class="nutrition-entry-card">
           <form id="nutrition-form">
             <label for="meal-text">Опишите порцию</label>
@@ -51,7 +53,36 @@
           </div>
         </article>
         <aside class="nutrition-history-card"><div class="nutrition-section-title"><div><p>СЕГОДНЯ</p><h2>Приёмы пищи</h2></div></div><div id="meal-history" class="meal-history"><div class="nutrition-empty"><span class="material-symbols-rounded">lunch_dining</span><p>Здесь появятся сохранённые приёмы пищи</p></div></div></aside>
-      </section>
+        </section>
+      </div>
+      <div id="weight-panel" class="hidden">
+        <section class="weight-hero">
+          <div><p class="nutrition-kicker">ДНЕВНИК ВЕСА</p><h1>Прогресс веса</h1><p>Заносите вес каждый день. Изменения считаются относительно предыдущей и первой записи.</p></div>
+          <div class="weight-current"><span>Текущий вес</span><strong id="weight-current">—</strong><small id="weight-current-date">Нет записей</small></div>
+        </section>
+        <section class="weight-stats" aria-label="Статистика веса">
+          <article><span>С прошлой записи</span><strong id="weight-last-change">—</strong><small id="weight-last-percent">—</small></article>
+          <article><span>За всё время</span><strong id="weight-total-change">—</strong><small id="weight-total-percent">—</small></article>
+          <article><span>Диапазон</span><strong id="weight-range">—</strong><small id="weight-record-count">0 записей</small></article>
+        </section>
+        <section class="weight-layout">
+          <article class="weight-entry-card">
+            <div class="nutrition-section-title"><div><p>НОВАЯ ЗАПИСЬ</p><h2>Записать вес</h2></div></div>
+            <form id="weight-form">
+              <label>Дата<input id="weight-date" type="date" required></label>
+              <label>Вес, кг<input id="weight-value" type="number" min="20" max="500" step="0.1" inputmode="decimal" placeholder="Например, 78.4" required></label>
+              <label>Комментарий<input id="weight-note" maxlength="160" placeholder="Необязательно"></label>
+              <button id="save-weight" class="nutrition-primary" type="submit"><span class="material-symbols-rounded">add_circle</span>Сохранить вес</button>
+              <p id="weight-message" class="message" role="status"></p>
+            </form>
+          </article>
+          <article class="weight-progress-card">
+            <div class="nutrition-section-title"><div><p>ДИНАМИКА</p><h2>Вес по дням</h2></div></div>
+            <div class="weight-chart-wrap"><canvas id="weight-chart"></canvas><div id="weight-chart-empty" class="nutrition-empty"><span class="material-symbols-rounded">show_chart</span><p>Добавьте первую запись, чтобы увидеть график</p></div></div>
+          </article>
+        </section>
+        <section class="weight-history-card"><div class="nutrition-section-title"><div><p>ИСТОРИЯ</p><h2>Все записи</h2></div></div><div id="weight-history" class="weight-history"></div></section>
+      </div>
     </main>
   </div>
 
