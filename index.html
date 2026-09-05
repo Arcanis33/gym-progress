@@ -5,9 +5,9 @@
   <meta name="theme-color" content="#f8f6f1"><title>Дневник тренировок</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=24">
+  <link rel="stylesheet" href="./styles.css?v=25">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-  <script src="./config.js"></script><script src="./data/foods.js?v=1"></script><script src="./data/seed.js"></script><script type="module" src="./js/app.js?v=17"></script>
+  <script src="./config.js"></script><script src="./data/foods.js?v=1"></script><script src="./data/seed.js"></script><script type="module" src="./js/app.js?v=18"></script>
 </head>
 <body>
   <section id="setup-screen" class="center-screen hidden"><div class="auth-card"><h1>Нужно подключить Supabase</h1><p>Заполните публичные настройки в <code>config.js</code>.</p></div></section>
@@ -23,6 +23,7 @@
       <section class="results-pane">
         <div class="toolbar"><label class="select-wrap"><span class="material-symbols-rounded">filter_list</span><select id="group-filter"><option value="all">Все группы</option></select></label><label class="search-wrap"><span class="material-symbols-rounded">search</span><input id="exercise-search" type="search" placeholder="Найти упражнение"></label><button id="open-exercise-dialog" class="add-exercise-button" type="button"><span class="material-symbols-rounded">playlist_add</span><span>Новое упражнение</span></button></div>
         <button id="open-recorder" class="record-button record-banner" type="button"><span class="record-banner-icon material-symbols-rounded">add_circle</span><span class="record-banner-copy"><strong>Режим записи</strong><small>Фиксируйте подходы и результаты</small></span><img class="record-banner-art artem-art" src="./assets/themes/artem-angels.webp" alt=""><img class="record-banner-art natasha-art" src="./assets/themes/natasha-training.jpg" alt=""><span class="record-banner-arrow material-symbols-rounded">chevron_right</span></button>
+        <button id="open-exercise-library" class="library-button" type="button"><span class="material-symbols-rounded">edit_note</span>Управление упражнениями</button>
         <div class="table-head"><span>Упражнение</span><span>Последний результат</span><span>Дата</span><span>Следующая цель</span><span>Изменение</span></div>
         <div id="results-list" class="results-list" aria-live="polite"></div>
       </section>
@@ -118,6 +119,14 @@
       <p class="dialog-hint">Отметьте упражнения, которые должны показываться в выбранный день.</p>
       <div id="day-settings-list" class="day-settings-list"></div>
       <button id="save-day-settings" class="save-record" type="submit">Сохранить состав</button><p id="day-settings-message" class="message" role="status"></p>
+    </form>
+  </dialog>
+  <dialog id="exercise-library" class="exercise-dialog day-settings-dialog library-dialog">
+    <form method="dialog">
+      <div class="dialog-header"><h2>Упражнения</h2><button class="icon-button" type="submit" aria-label="Закрыть библиотеку"><span class="material-symbols-rounded">close</span></button></div>
+      <p class="dialog-hint">Убирайте ненужные упражнения в архив. Все результаты сохраняются. Кнопка восстановления вернёт упражнение и историю.</p>
+      <div id="exercise-library-list" class="day-settings-list"></div>
+      <p id="exercise-library-message" class="message" role="status"></p>
     </form>
   </dialog>
   <div id="toast" class="toast hidden" role="status"></div>
